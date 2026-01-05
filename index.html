@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Saher Marzouk | Portfolio</title>
+
   <style>
     :root{
       --accent1: 200 100% 55%;
@@ -24,7 +25,6 @@
     a{text-decoration:none;color:inherit;}
     .container{max-width:1100px;margin:0 auto;padding:16px;}
 
-    /* NAV */
     .nav{
       position:sticky;top:0;z-index:20;
       backdrop-filter:blur(10px);
@@ -103,7 +103,6 @@
       color:#021018;
     }
 
-    /* HERO */
     .hero{
       padding:26px 0 12px;
       display:grid;
@@ -168,22 +167,32 @@
       margin-bottom:14px;
     }
     .profile-photo{
-      width:120px;height:120px;border-radius:50%;
-      overflow:hidden;border:2px solid rgba(255,255,255,0.25);
-      display:flex;align-items:center;justify-content:center;
-      background:rgba(255,255,255,0.06);
-      font-size:40px;font-weight:700;
-      color:rgba(240,244,255,0.85);
-    }
+  width:220px;        /* كانت 170 */
+  height:220px;       /* كانت 170 */
+  border-radius:50%;
+  overflow:hidden;
+  border:3px solid rgba(255,255,255,0.8);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.06);
+  font-size:52px;
+  font-weight:700;
+  color:rgba(240,244,255,0.9);
+  box-shadow:0 0 0 4px rgba(126,210,255,0.35),
+             0 0 26px rgba(90,255,180,0.5);
+}
     body.light .profile-photo{
       background:rgba(0,0,0,0.04);
       color:#050814;
     }
     .profile-photo img{
-      width:100%;height:100%;object-fit:cover;display:none;
-    }
-
-    /* SECTIONS */
+  width:100%;
+  height:100%;
+  object-fit:cover;          /* يملأ الدايرة */
+  object-position: top center; /* يرفع الصورة شوية لتحت فيبان راسك كويس */
+  display:none;
+}
     section{padding:18px 0;scroll-margin-top:80px;}
     .section-title{
       display:flex;align-items:center;gap:8px;
@@ -236,14 +245,12 @@
     }
     body.light footer{color:rgba(20,28,48,0.75);}
 
-    /* RTL */
     .rtl main,.rtl .nav-inner{direction:rtl;}
     .rtl .nav-inner{flex-direction:row-reverse;}
     .rtl .nav-links{justify-content:flex-end;}
     .rtl .section-title{flex-direction:row-reverse;}
     .rtl .tag{margin:3px 0 0 6px;}
 
-    /* ADMIN PAGE */
     #adminView{display:none;}
     .admin-box{max-width:900px;margin:24px auto;padding:16px;}
     .admin-card{
@@ -282,7 +289,7 @@
   </style>
 </head>
 <body>
-  <!-- ================= PROFILE VIEW ================= -->
+  <!-- ======== PROFILE (للناس العادية) ======== -->
   <div id="profileView">
     <header class="nav">
       <div class="container nav-inner">
@@ -442,7 +449,7 @@
     </main>
   </div>
 
-  <!-- ================= ADMIN VIEW (لما تكتب ?admin) ================= -->
+  <!-- ======== ADMIN (لما تكتب ?admin) ======== -->
   <div id="adminView">
     <div class="admin-box">
       <div class="admin-card">
@@ -534,20 +541,23 @@
       </div>
     </div>
   </div>
+    <!-- Firebase SDK (App + Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
     var ADMIN_USER = 'saher';
-    var ADMIN_PASS = '1234';
+    var ADMIN_PASS = 'saher.20230289';
 
     var profile = {
       links: {
         email: 'sahermarzouk655@gmail.com',
-        phone: 'Add your phone',
+        phone: '',
         linkedin: 'https://www.linkedin.com/in/%D8%B3%D8%A7%D9%87%D8%B1-%D8%A3%D9%8A%D9%87%D8%A7%D8%A8-58a43a270/?locale=en-US',
         github: 'https://github.com/',
-        cv: '#',            // خليها مثلاً ./Saher_CV.pdf لما تضيفه جنب الملف
-        projectsPdf: '#',   // نفس الفكرة لمشاريع PDF
-        certsPdf: '#'
+        cv: '#',
+        projectsPdf: '#',
+        certsPdf: 'https://drive.google.com/drive/folders/1COFpwdfyXmrf81Y7Sq0PjnxFxY6HVOJe?usp=sharing'
       },
       photoData: '',
       texts: {
@@ -667,6 +677,40 @@
       return out;
     }
 
+    function renderProjects(){
+      var T = profile.texts[state.lang];
+      var q = $('projectSearch').value.toLowerCase().trim();
+      var all = parseProjects(T.projectsText);
+      var list = [];
+      for(var i=0;i<all.length;i++){
+        var blob = (all[i].title+' '+all[i].desc).toLowerCase();
+        if(blob.indexOf(q)!==-1){list.push(all[i]);}
+      }
+      var html = '';
+      for(var j=0;j<list.length;j++){
+        html += '<div class="card"><div class="card-inner">'+
+          '<div style="font-weight:800;font-size:15px;margin-bottom:4px;">'+list[j].title+'</div>'+
+          '<div class="muted" style="font-size:13px;">'+list[j].desc+'</div>'+
+          '</div></div>';
+      }
+      $('projectsGrid').innerHTML = html;
+      $('noProjects').style.display = list.length ? 'none' : 'block';
+    }
+
+    function renderCerts(){
+      var T = profile.texts[state.lang];
+      var all = parseCerts(T.certsText);
+      var html = '';
+      for(var i=0;i<all.length;i++){
+        html += '<div class="card"><div class="card-inner">'+
+          '<div style="font-weight:800;font-size:14px;margin-bottom:4px;">'+all[i].name+'</div>'+
+          '<div class="muted" style="font-size:13px;">'+all[i].issuer+'</div>'+
+          '<div class="muted" style="font-size:12px;margin-top:4px;">'+all[i].year+'</div>'+
+          '</div></div>';
+      }
+      $('certGrid').innerHTML = html;
+    }
+
     function renderProfile(){
       var T = profile.texts[state.lang];
 
@@ -721,7 +765,7 @@
       $('directEmail').textContent = profile.links.email;
       $('mailBtn').href = 'mailto:'+profile.links.email;
 
-      $('phoneText').textContent = profile.links.phone;
+      $('phoneText').textContent = profile.links.phone || '';
       $('linkedinLink').href = profile.links.linkedin;
       $('linkedin2').href = profile.links.linkedin;
       $('lnBtn').href = profile.links.linkedin;
@@ -802,107 +846,6 @@
       }
     }
 
-    function renderProjects(){
-      var T = profile.texts[state.lang];
-      var q = $('projectSearch').value.toLowerCase().trim();
-      var all = parseProjects(T.projectsText);
-      var list = [];
-      for(var i=0;i<all.length;i++){
-        var blob = (all[i].title+' '+all[i].desc).toLowerCase();
-        if(blob.indexOf(q)!==-1){list.push(all[i]);}
-      }
-      var html = '';
-      for(var j=0;j<list.length;j++){
-        html += '<div class="card"><div class="card-inner">'+
-          '<div style="font-weight:800;font-size:15px;margin-bottom:4px;">'+list[j].title+'</div>'+
-          '<div class="muted" style="font-size:13px;">'+list[j].desc+'</div>'+
-          '</div></div>';
-      }
-      $('projectsGrid').innerHTML = html;
-      $('noProjects').style.display = list.length ? 'none' : 'block';
-    }
-
-    function renderCerts(){
-      var T = profile.texts[state.lang];
-      var all = parseCerts(T.certsText);
-      var html = '';
-      for(var i=0;i<all.length;i++){
-        html += '<div class="card"><div class="card-inner">'+
-          '<div style="font-weight:800;font-size:14px;margin-bottom:4px;">'+all[i].name+'</div>'+
-          '<div class="muted" style="font-size:13px;">'+all[i].issuer+'</div>'+
-          '<div class="muted" style="font-size:12px;margin-top:4px;">'+all[i].year+'</div>'+
-          '</div></div>';
-      }
-      $('certGrid').innerHTML = html;
-    }
-
-    function setupProfileEvents(){
-      var langBtn = $('langToggleBtn');
-      if(langBtn){
-        langBtn.onclick = function(){
-          state.lang = state.lang==='en' ? 'ar' : 'en';
-          renderProfile();
-        };
-      }
-      var themeToggle = $('themeToggle');
-      if(themeToggle){
-        themeToggle.onclick = function(){
-          state.theme = state.theme==='dark' ? 'light' : 'dark';
-          renderProfile();
-        };
-      }
-      var search = $('projectSearch');
-      if(search){
-        search.addEventListener('input', renderProjects);
-      }
-      var copyBtn = $('copyBtn');
-      if(copyBtn){
-        copyBtn.onclick = function(){
-          var T = profile.texts[state.lang];
-          if(navigator.clipboard && profile.links.email){
-            navigator.clipboard.writeText(profile.links.email).then(function(){
-              copyBtn.textContent = T.labels.copied;
-              setTimeout(function(){
-                copyBtn.textContent = T.labels.copy;
-              },1200);
-            });
-          }
-        };
-      }
-    }
-
-    function setupAdminEvents(){
-      var loginBtn = $('adminLoginBtn');
-      if(loginBtn){
-        loginBtn.onclick = handleLogin;
-      }
-      var passInput = $('adminPass');
-      if(passInput){
-        passInput.addEventListener('keydown', function(e){
-          if(e.key === 'Enter'){handleLogin();}
-        });
-      }
-      var applyBtn = $('adminApplyBtn');
-      if(applyBtn){
-        applyBtn.onclick = applyAdminChanges;
-      }
-      var fileInput = $('adminPhotoFile');
-      if(fileInput){
-        fileInput.addEventListener('change', function(ev){
-          var file = ev.target.files[0];
-          if(!file) return;
-          if(!file.type || file.type.indexOf('image')!==0) return;
-          var reader = new FileReader();
-          reader.onload = function(e){
-            profile.photoData = e.target.result || '';
-            saveProfile();
-            renderProfile();
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-    }
-
     function fillAdminForm(){
       var en = profile.texts.en;
       var ar = profile.texts.ar;
@@ -959,14 +902,14 @@
       v = $('adminProjectsPdf').value.trim(); if(v) profile.links.projectsPdf = v;
       v = $('adminCertsPdf').value.trim(); if(v) profile.links.certsPdf = v;
 
-      v = $('adminProjectsEn').value; if(typeof v === 'string') en.projectsText = v;
-      v = $('adminProjectsAr').value; if(typeof v === 'string') ar.projectsText = v;
-      v = $('adminCertsEn').value; if(typeof v === 'string') en.certsText = v;
-      v = $('adminCertsAr').value; if(typeof v === 'string') ar.certsText = v;
+      v = $('adminProjectsEn').value; if(v) en.projectsText = v;
+      v = $('adminProjectsAr').value; if(v) ar.projectsText = v;
+      v = $('adminCertsEn').value; if(v) en.certsText = v;
+      v = $('adminCertsAr').value; if(v) ar.certsText = v;
 
       saveProfile();
       renderProfile();
-      alert('تم حفظ التغييرات (محفوظة على هذا الجهاز في المتصفح). افتح الصفحة العادية من غير ?admin وشوف النتيجة.');
+      alert('تم حفظ التغييرات على هذا الجهاز. لو عدّلت بعد ما ترفع الموقع، التغييرات هتظهر عندك في نفس المتصفح.');
     }
 
     function handleLogin(){
@@ -981,6 +924,49 @@
       } else {
         if(err) err.textContent = 'Wrong username or password.';
       }
+    }
+
+    function setupProfileEvents(){
+      $('langToggleBtn').onclick = function(){
+        state.lang = state.lang==='en' ? 'ar' : 'en';
+        renderProfile();
+      };
+      $('themeToggle').onclick = function(){
+        state.theme = state.theme==='dark' ? 'light' : 'dark';
+        renderProfile();
+      };
+      $('projectSearch').addEventListener('input', renderProjects);
+      $('copyBtn').onclick = function(){
+        var T = profile.texts[state.lang];
+        if(navigator.clipboard && profile.links.email){
+          navigator.clipboard.writeText(profile.links.email).then(function(){
+            $('copyBtn').textContent = T.labels.copied;
+            setTimeout(function(){
+              $('copyBtn').textContent = T.labels.copy;
+            },1200);
+          });
+        }
+      };
+    }
+
+    function setupAdminEvents(){
+      $('adminLoginBtn').onclick = handleLogin;
+      $('adminPass').addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){handleLogin();}
+      });
+      $('adminApplyBtn').onclick = applyAdminChanges;
+      $('adminPhotoFile').addEventListener('change', function(ev){
+        var file = ev.target.files[0];
+        if(!file) return;
+        if(!file.type || file.type.indexOf('image')!==0) return;
+        var reader = new FileReader();
+        reader.onload = function(e){
+          profile.photoData = e.target.result || '';
+          saveProfile();
+          renderProfile();
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     function loadProfile(){
@@ -1001,34 +987,23 @@
       }catch(e){}
     }
 
-    function initProfile(){
-      if($('year')){
-        $('year').textContent = new Date().getFullYear();
-      }
-      setupProfileEvents();
-      renderProfile();
-    }
-
-    function initAdmin(){
-      setupAdminEvents();
-      $('adminLoginPanel').style.display = 'block';
-      $('adminFormPanel').style.display = 'none';
-    }
-
     document.addEventListener('DOMContentLoaded', function(){
+      $('year').textContent = new Date().getFullYear();
       loadProfile();
+
       var search = window.location.search.toLowerCase();
       var hash = window.location.hash.toLowerCase();
       var isAdmin = (search.indexOf('admin')!==-1 || hash.indexOf('admin')!==-1);
 
       if(isAdmin){
-        if($('profileView')) $('profileView').style.display = 'none';
-        if($('adminView')) $('adminView').style.display = 'block';
-        initAdmin();
+        $('profileView').style.display = 'none';
+        $('adminView').style.display = 'block';
+        setupAdminEvents();
       } else {
-        if($('profileView')) $('profileView').style.display = 'block';
-        if($('adminView')) $('adminView').style.display = 'none';
-        initProfile();
+        $('profileView').style.display = 'block';
+        $('adminView').style.display = 'none';
+        setupProfileEvents();
+        renderProfile();
       }
     });
   </script>
